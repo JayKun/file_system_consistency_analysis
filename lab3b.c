@@ -23,19 +23,28 @@ artipatankar@ucla.edu, junkai@g.ucla.edu
 #define BLOCKSIZE 1024
 
 int ifd;
-char* img_file;
-struct ext2_super_block superblock;
-struct ext2_group_desc group_desc;
+char* filename;
+
+int block_consistency_summary(){
+	int inode_num;
+
+	int res = scanf("INODE,%d, %[^,], %[^,], %[^,], %d, %f\n",&inode_num, &addr, &city, &state, &zip, &amt);	
+	
+
+}
+
+
+
 
 int main(int argc, char* argv[]) {
-	img_file = NULL; 
+	filename = NULL; 
 	if(argc != 2) {
-		fprintf(stderr, "Correct usage: ./lab3a [filename]\n");
+		fprintf(stderr, "Correct usage: ./lab3b [filename]\n");
 		exit(1);
 	}
 	
-	img_file = (char*)malloc(strlen(argv[1]) + 1);
-	img_file = argv[1];
+	filename = (char*)malloc(strlen(argv[1]) + 1);
+	filename = argv[1];
 
 	ifd = open(img_file, O_RDONLY);
 	int errRead = errno;
@@ -46,5 +55,7 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 	exit(0);
+	// Block Consistency Audits
+		
 }
 	
