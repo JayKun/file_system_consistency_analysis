@@ -6,7 +6,7 @@
 
 import sys
 def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_level, n_inodes):
-	offset = block + group_num * n_blocks
+	offset = group_num * n_blocks
 
 	# check for invalid blocks
 	if (block < 0 or block > n_blocks):
@@ -47,9 +47,7 @@ def block_audit(lines):
 			n_inodes = int (line[3]) 
 			n_blocks = int(line[2])
         	if (line[0] == "INODE"):
-			inode_num = int(line[1])
-            		link_count = int(line[6])
-                               
+			inode_num = int(line[1])                       
             		# process direct blocks
             		for i in range(12, 24):
                 		block = int(line[i])
