@@ -54,6 +54,7 @@ def block_audit(lines):
 				if(block != 0):
                 			process_block(free_blocks, block, group_num, n_blocks, inode_num, "")
                 		if (block not in allocated_blocks):
+					print block
             	    			allocated_blocks.append(block)
                 		elif (block != 0):
                     			duplicate_block(block, group_num, n_blocks, inode_num, "")
@@ -84,8 +85,17 @@ def block_audit(lines):
                 		allocated_blocks.append(block)
             		elif (block != 0):
                 		duplicate_block(block, group_num, n_blocks, inode_num, "TRIPLE INDIRECT")
-            
-      
+	if (line[0]=="INDIRECT"):
+			block = int(line[5])
+            		if (block not in allocated_blocks):
+                		allocated_blocks.append(block)
+            		elif (block != 0):
+                		duplicate_block(block, group_num, n_blocks, inode_num, "TRIPLE INDIRECT")
+
+			# Unreferenced block 
+     	for i in range(219, n_blocks+1):
+		if(i not in allocated_blocks and i not in free_blocks):
+			sys.stdout.write("UNREFERENCED BLOCK " + str(i) + '\n')
 def inode_audit(lines):
 	#inode_size
 	#first_inode
