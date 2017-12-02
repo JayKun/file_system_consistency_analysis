@@ -26,9 +26,6 @@ def duplicate_block(block, group_num, n_blocks, inode_num, block_level):
 	offset = block - group_num * 8192
 	sys.stdout.write("DUPLICATE " + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
     
-
-
-
 def block_audit(lines):
 	#inode_size
 	#block_size
@@ -155,6 +152,5 @@ def main():
 	block_audit(lines)
 	inode_audit(lines)  
 	dir_audit(lines)
-
 if __name__ == "__main__":
     main()
