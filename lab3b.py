@@ -6,7 +6,7 @@
 
 import sys
 def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_level):
-	offset = block - group_num * 8192
+	offset = block + group_num * n_blocks
 
 	# check for invalid blocks
 	if (block < 0 or block > n_blocks):
@@ -23,7 +23,7 @@ def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_leve
 
 
 def duplicate_block(block, group_num, n_blocks, inode_num, block_level):
-	offset = block - group_num * 8192
+	offset = block + group_num * n_blocks
 	sys.stdout.write("DUPLICATE " + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
     
 def block_audit(lines):
@@ -39,11 +39,11 @@ def block_audit(lines):
         	line = line.split(',')
         	if (line[0] == 'SUPERBLOCK'):
             		inode_size = int(line[4])
-            		n_blocks = int(line[5])
         	if (line[0] == 'BFREE'):
 			free_blocks.append(int(line[1]))
         	if (line[0] == 'GROUP'):
 			group_num = int(line[1])
+			n_blocks = int(line[2])
         	if (line[0] == "INODE"):
 			inode_num = int(line[1])
             		link_count = int(line[6])
@@ -54,7 +54,6 @@ def block_audit(lines):
 				if(block != 0):
                 			process_block(free_blocks, block, group_num, n_blocks, inode_num, "")
                 		if (block not in allocated_blocks):
-					print block
             	    			allocated_blocks.append(block)
                 		elif (block != 0):
                     			duplicate_block(block, group_num, n_blocks, inode_num, "")
