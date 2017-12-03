@@ -154,6 +154,8 @@ def block_audit(lines):
 				level_indirection = "DOUBLE INDIRECT"
 			elif (level == 3):
 				level_indirection = "TRIPLE INDIRECT"
+			process_block(free_blocks, block, group_num, n_blocks, inode_num, level_indirection, n_inodes * (inode_size/block_size), 14)
+			
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
 				entry = []
