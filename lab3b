@@ -10,21 +10,21 @@ def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_leve
 
 	# check for invalid blocks
 	if (block < 0 or block > n_blocks):
-		sys.stdout.write("INVALID " + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
+		sys.stdout.write("INVALID" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
     
 	# check for reserved blocks
 	if (block < group_num * 8192 + 4 + n_inodes):
-		sys.stdout.write("RESERVED " + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
+		sys.stdout.write("RESERVED" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
     
 	# check for unreferenced blocks
 	if (block == 0 and block not in free_blocks):
-		sys.stdout.write("UNREFERENCED " + block_level + " BLOCK " + str(block) + "\n")
+		sys.stdout.write("UNREFERENCED" + block_level + " BLOCK " + str(block) + "\n")
 
 
 
 def duplicate_block(block, group_num, n_blocks, inode_num, block_level):
 	offset = block + group_num * n_blocks
-	sys.stdout.write("DUPLICATE " + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
+	sys.stdout.write("DUPLICATE" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
     
 def block_audit(lines):
 	#inode_size
@@ -47,13 +47,12 @@ def block_audit(lines):
 			n_inodes = int (line[3]) 
 			n_blocks = int(line[2])
         	if (line[0] == "INODE"):
-			inode_num = int(line[1])
-                               
+			inode_num = int(line[1])                       
             		# process direct blocks
             		for i in range(12, 24):
                 		block = int(line[i])
-				if(block != 0):
-                			process_block(free_blocks, block, group_num, n_blocks, inode_num, "", n_inodes*(inode_size/block_size))
+				if (block != 0):
+                			process_block(free_blocks, block, group_num, n_blocks, inode_num, "", n_inodes * (inode_size/block_size))
                 		if (block not in allocated_blocks):
             	    			allocated_blocks.append(block)
                 		elif (block != 0):
@@ -61,39 +60,43 @@ def block_audit(lines):
             		
 			# process single indirect block
             		block = int(line[24])
-            		if(block != 0):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, "INDIRECT", n_inodes*(inode_size/block_size))
+            		if (block != 0):
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " INDIRECT", n_inodes * (inode_size/block_size))
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
-            		elif (block !=0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, "INDIRECT")
+            		elif (block != 0):
+                		duplicate_block(block, group_num, n_blocks, inode_num, " INDIRECT")
                                
             		# process double indirect block
             		block = int (line[25])
-            		if(block != 0):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, "DOUBLE INDIRECT", n_inodes*(inode_size/block_size))
+            		if (block != 0):
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT", n_inodes * (inode_size/block_size))
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, "DOUBLE INDIRECT")
+                		duplicate_block(block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT")
                                
             		# process triple indirect block
             		block = int (line[26])
-			if (block !=0 ):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, "TRIPLE INDIRECT", n_inodes*(inode_size/block_size))
+			if (block != 0):
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT", n_inodes * (inode_size/block_size))
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, "TRIPLE INDIRECT")
-		if (line[0]=="INDIRECT"):
+                		duplicate_block(block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT")
+		if (line[0] == "INDIRECT"):
 			block = int(line[5])
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, "TRIPLE INDIRECT")
+                		duplicate_block(block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT")
 
-	for i in range(5+n_inodes, n_blocks):
-		if(i not in allocated_blocks and i not in free_blocks):
+	for block in allocated_blocks:
+		if (block in free_blocks):
+			sys.stdout.write("ALLOCATED BLOCK " + str(block) + " ON FREELIST" + "\n");	
+
+	for i in range(5 + n_inodes, n_blocks):
+		if (i not in allocated_blocks and i not in free_blocks):
 			sys.stdout.write("UNREFERENCED BLOCK " + str(i) + '\n')
 
 def inode_audit(lines):
@@ -128,15 +131,13 @@ def dir_audit(lines):
 	dir_links = []	
 	for line in lines:
 		line = line.split(',')
+		if (line[0] == "SUPERBLOCK"):
+			first_inode = int(line[7])
+			last_inode = int(line[6])
 		if (line[0] == "INODE"):
 			allocated_inodes.append(int(line[1]))
 		if (line[0] == "DIRENT"):
 			dir_links.append(int(line[3]))
-
-			# inode allocation
-			inode_num = int(line[1])
-                        if (inode_num not in allocated_inodes):
-                                sys.stdout.write("DIRECTORY INODE " + str(inode_num) + " NAME " + line[6] + " UNALLOCATED INODE " + line[3] + "\n")
 	
 	for line in lines:
 		line = line.split(',')
@@ -148,7 +149,33 @@ def dir_audit(lines):
 			link_count = int(line[6]) 
 			if (links != link_count):
 				sys.stdout.write("INODE " + str(inode_num) + " HAS " + str(links) + " LINKS BUT LINKCOUNT IS " + str(link_count) + "\n")	
+		if (line[0] == "DIRENT"):
+			parent_num = int(line[1])
+                        inode_num = int(line[3])
+			name = line[6]
+                        if (inode_num not in allocated_inodes):
+				# inode allocation if inode_num is valid
+				if (inode_num in range(first_inode, last_inode)):
+                                	sys.stdout.write("DIRECTORY INODE " + str(parent_num) + " NAME " + line[6] + " UNALLOCATED INODE " + str(inode_num) + "\n")
+				# inode validity
+				else:
+					sys.stdout.write("DIRECTORY INODE " + str(parent_num) + " NAME " + line[6] + " INVALID INODE " + str(inode_num) + "\n")
 
+			if (name == "\'.\'" and parent_num != inode_num):
+				sys.stdout.write("DIRECTORY INODE " + str(parent_num) + " NAME " + line[6] + " LINK TO INODE " + str(inode_num) + " SHOULD BE " + str(parent_num) + "\n")
+
+			if (name == "\'..\'"):
+				if (parent_num == 2):
+					if (inode_num != 2):
+						sys.stdout.write("DIRECTORY INODE " + str(parent_num) + " NAME " + name + " LINK TO INODE " + str(inode_num) + " SHOULD BE " + str(parent_num) + "\n")
+
+				elif (parent_num != 2):
+					# look for parent directory by traversing the lines to find a directory where the referenced inode (line[3]) is parent_num, then inode_num should be the parent inode (line[1])
+					for line in lines:
+						line = line.split(',')
+						# exclude the "." directory from the search for the parent directory
+						if (line[0] == "DIRENT" and line[6] != "\'.\'" and line[3] == str(parent_num) and line[1] != str(inode_num)):
+							sys.stdout.write("DIRECTORY INODE " + str(parent_num) + " NAME " + name + " LINK TO INODE " + str(inode_num) + " SHOULD BE " + line[1] + "\n")  
  
 def main():
 	if (len(sys.argv) != 2):
