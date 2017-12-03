@@ -186,6 +186,7 @@ def main():
 		fo = open(filename, "r+")
     	except IOError as e:
 		sys.stderr.write('Error: cannot open file ' + filename + "\n")
+		exit(1)
 	lines = fo.read().split('\n') # lines of csv file
 	block_audit(lines)
 	inode_audit(lines)  
