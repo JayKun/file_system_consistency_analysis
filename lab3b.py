@@ -9,14 +9,15 @@ import sys
 
 duplicate_blocks = []
 
-def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_level, n_inodes, offset):
-	offset = 0
-	if ( block_level == " INDIRECT"):
-		offset += 12
-	elif ( block_level == " DOUBLE INDIRECT"):
-		offset += 12 + 256
-	elif ( block_level == " TRIPLE INDIRECT" ):
-		offset += 12 + 256 + 256*256 
+def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_level, n_inodes, offset, flag = False):
+	if (not flag):
+		offset = 0
+		if (block_level == " INDIRECT"):
+			offset += 12
+		elif (block_level == " DOUBLE INDIRECT"):
+			offset += 12 + 256
+		elif (block_level == " TRIPLE INDIRECT"):
+			offset += 12 + 256 + 256*256 
 
 	# check for invalid blocks
 	if (block < 0 or block > n_blocks):
@@ -32,34 +33,36 @@ def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_leve
 
 
 
-def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset, flag=False):	
-	if( not flag):
+def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset, flag = False):	
+	if (not flag):
 		offset = 0
-		if ( block_level == " INDIRECT"):
+		if (block_level == " INDIRECT"):
 			offset += 12
-		elif ( block_level == " DOUBLE INDIRECT"):
+		elif (block_level == " DOUBLE INDIRECT"):
 			offset += 12 + 256
-		elif ( block_level == " TRIPLE INDIRECT" ):
+		elif (block_level == " TRIPLE INDIRECT"):
 			offset += 12 + 256 + 256*256 
+	
 	sys.stdout.write("DUPLICATE" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
+	
 	for b in duplicate_blocks:
-		if(b[0]==block):
+		if (b[0] == block):
 			inode_num = b[1]
 			offset = b[3]
-			if(b[2]==1):
+			if (b[2] == 1):
 				block_level = " INDIRECT"
-			elif ( b[2] == 2 ):
+			elif (b[2] == 2):
 				block_level = " DOUBLE INDIRECT"
-			elif( b[2] == 3 ):
+			elif (b[2] == 3):
 				block_level = " TRIPLE INDIRECT"
 			else:
 				block_level = ""
 	offset = 0
-	if ( block_level == " INDIRECT"):
+	if (block_level == " INDIRECT"):
 		offset += 12
-	elif ( block_level == " DOUBLE INDIRECT"):
+	elif (block_level == " DOUBLE INDIRECT"):
 		offset += 12 + 256
-	elif ( block_level == " TRIPLE INDIRECT" ):
+	elif (block_level == " TRIPLE INDIRECT"):
 		offset += 12 + 256 + 256*256 
 	sys.stdout.write("DUPLICATE" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
 	
@@ -89,7 +92,7 @@ def block_audit(lines):
             		for i in range(12, 24):
                 		block = int(line[i])
 				if (block != 0):
-                			process_block(free_blocks, block, group_num, n_blocks, inode_num, "", n_inodes * (inode_size/block_size), i-12)
+                			process_block(free_blocks, block, group_num, n_blocks, inode_num, "", n_inodes * (inode_size / block_size), 0)
                 		if (block not in allocated_blocks):
             	    			allocated_blocks.append(block)
 					entry = []
@@ -99,12 +102,12 @@ def block_audit(lines):
 					entry.append(0)
 					duplicate_blocks.append(entry)
                 		elif (block != 0):
-                    			duplicate_block(block, group_num, n_blocks, inode_num, "", i-12)
+                    			duplicate_block(block, group_num, n_blocks, inode_num, "", 0)
             		
 			# process single indirect block
             		block = int(line[24])
             		if (block != 0):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, " INDIRECT", n_inodes * (inode_size/block_size), 12)
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " INDIRECT", n_inodes * (inode_size / block_size), 0)
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
 				entry = []
@@ -113,12 +116,12 @@ def block_audit(lines):
 				entry.append(1)
 				duplicate_blocks.append(entry)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, " INDIRECT", 12)
+                		duplicate_block(block, group_num, n_blocks, inode_num, " INDIRECT", 0)
                                
             		# process double indirect block
             		block = int (line[25])
             		if (block != 0):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT", n_inodes * (inode_size/block_size), 13)
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT", n_inodes * (inode_size / block_size), 0)
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
 				entry = []
@@ -127,12 +130,12 @@ def block_audit(lines):
 				entry.append(2)
 				duplicate_blocks.append(entry)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT", 13)
+                		duplicate_block(block, group_num, n_blocks, inode_num, " DOUBLE INDIRECT", 0)
                                
             		# process triple indirect block
             		block = int (line[26])
 			if (block != 0):
-				process_block(free_blocks, block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT", n_inodes * (inode_size/block_size), 14)
+				process_block(free_blocks, block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT", n_inodes * (inode_size / block_size), 0)
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
 				entry = []
@@ -141,20 +144,20 @@ def block_audit(lines):
 				entry.append(3)
 				duplicate_blocks.append(entry)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT", 14)
+                		duplicate_block(block, group_num, n_blocks, inode_num, " TRIPLE INDIRECT", 0)
 		if (line[0] == "INDIRECT"):
 			block = int(line[5])
 			level = int(line[2])
 			inode_num = int(line[1])
 			level_indirection = ""
 			offset = int(line[3])
-			if ( level == 1):
+			if (level == 1):
 				level_indirection = "INDIRECT"
 			elif (level == 2):
 				level_indirection = "DOUBLE INDIRECT"
 			elif (level == 3):
 				level_indirection = "TRIPLE INDIRECT"
-			process_block(free_blocks, block, group_num, n_blocks, inode_num, level_indirection, n_inodes * (inode_size/block_size), 14)
+			process_block(free_blocks, block, group_num, n_blocks, inode_num, level_indirection, n_inodes * (inode_size / block_size), offset, True)
 			
             		if (block not in allocated_blocks):
                 		allocated_blocks.append(block)
