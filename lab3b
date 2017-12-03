@@ -42,6 +42,7 @@ def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset):
 	for b in duplicate_blocks:
 		if(b[0]==block):
 			inode_num = b[1]
+			offset = b[3]
 			if(b[2]==1):
 				block_level = " INDIRECT"
 			elif ( b[2] == 2 ):
@@ -50,13 +51,12 @@ def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset):
 				block_level = " TRIPLE INDIRECT"
 			else:
 				block_level = ""
-	offset = inode_num + n_blocks	
 	if ( block_level == " INDIRECT"):
-		offset += 12
+		offset += 0
 	elif ( block_level == " DOUBLE INDIRECT"):
-		offset += 12 + 256
+		offset += 256
 	elif ( block_level == " TRIPLE INDIRECT" ):
-		offset += 12 + 256 + 256*256 
+		offset += 256 + 256*256 
 	sys.stdout.write("DUPLICATE" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
 	
 def block_audit(lines):
@@ -91,6 +91,7 @@ def block_audit(lines):
 					entry = []
 					entry.append(block)
 					entry.append(inode_num)
+					entry.append(i-12)
 					entry.append(0)
 					duplicate_blocks.append(entry)
                 		elif (block != 0):
