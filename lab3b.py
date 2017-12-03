@@ -32,14 +32,15 @@ def process_block(free_blocks, block, group_num, n_blocks, inode_num, block_leve
 
 
 
-def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset):	
-	offset = 0
-	if ( block_level == " INDIRECT"):
-		offset += 12
-	elif ( block_level == " DOUBLE INDIRECT"):
-		offset += 12 + 256
-	elif ( block_level == " TRIPLE INDIRECT" ):
-		offset += 12 + 256 + 256*256 
+def duplicate_block(block, group_num, n_blocks, inode_num, block_level, offset, flag=False):	
+	if( not flag):
+		offset = 0
+		if ( block_level == " INDIRECT"):
+			offset += 12
+		elif ( block_level == " DOUBLE INDIRECT"):
+			offset += 12 + 256
+		elif ( block_level == " TRIPLE INDIRECT" ):
+			offset += 12 + 256 + 256*256 
 	sys.stdout.write("DUPLICATE" + block_level + " BLOCK " + str(block) + " IN INODE " + str(inode_num) + " AT OFFSET " + str(offset) + "\n")
 	for b in duplicate_blocks:
 		if(b[0]==block):
@@ -146,6 +147,7 @@ def block_audit(lines):
 			level = int(line[2])
 			inode_num = int(line[1])
 			level_indirection = ""
+			offset = int(line[3])
 			if ( level == 1):
 				level_indirection = "INDIRECT"
 			elif (level == 2):
@@ -160,7 +162,7 @@ def block_audit(lines):
 				entry.append(level)
 				duplicate_blocks.append(entry)
             		elif (block != 0):
-                		duplicate_block(block, group_num, n_blocks, inode_num, level_indirection, 11+level)
+                		duplicate_block(block, group_num, n_blocks, inode_num, level_indirection, offset, True)
 
 	for block in allocated_blocks:
 		if (block in free_blocks):
